@@ -39,7 +39,9 @@
 int main()
 {
     while (true) {
-
+        if (false) {
+            
+        }
     }
 }
 
