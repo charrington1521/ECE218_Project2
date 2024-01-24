@@ -11,6 +11,8 @@
 * | Date | Description |
 * |:----------:|:-----------------------------------------------|
 * | 01/24/2024 | First version of program |
+* | 01/24/2024 | Added objects and defines clearly required by 
+*                project directions |
 *
 *
 */
