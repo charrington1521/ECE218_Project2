@@ -11,6 +11,8 @@
 * | Date | Description |
 * |:----------:|:-----------------------------------------------|
 * | 01/24/2024 | First version of program |
+* | 01/24/2024 | Added objects and defines clearly required by 
+*                project directions |
 *
 *
 */
@@ -20,7 +22,22 @@
 #include "mbed.h"
 #include "arm_book_lib.h"
 
+//=====[Defines]===============================================================
+
+#define DAYLIGHT_LEVEL 0
+#define DUSK_LEVEL 0
+
 //=====[Declaration and initialization of public global objects]===============
+
+AnalogIn headlightModeSelector(A1);
+AnalogIn daylightSensor(A2);
+
+DigitalIn ignitionButton(BUTTON1);
+DigitalIn driverOccupancy(D1);
+
+DigitalOut ignitionLed(LED2);
+DigitalOut lowBeamLampLeft(D6);
+DigitalOut lowBeamLampRight(D7);
 
 //=====[Declaration and initialization of public global variables]=============
 
@@ -39,7 +56,9 @@
 int main()
 {
     while (true) {
+        if (false) {
 
+        }
     }
 }
 
