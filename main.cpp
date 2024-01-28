@@ -25,16 +25,16 @@
 
 //=====[Defines]===============================================================
 
-#define DAYLIGHT_LEVEL 0
-#define DUSK_LEVEL 0
+#define DAYLIGHT_LEVEL                           0
+#define DUSK_LEVEL                               0
 
-#define HEADLIGHT_OFF_THRESHOLD 0.33
-#define HEADLIGHT_ON_THRESHOLD 0.66
+#define HEADLIGHT_OFF_THRESHOLD               0.33
+#define HEADLIGHT_ON_THRESHOLD                0.66
 
 #define TIME_INCREMENT_MS                       10
 #define DEBOUNCE_BUTTON_TIME_MS                 40
 
-//=====[Declaration of public data types]=================
+//=====[Declaration of public data types]======================================
 
 typedef enum {
     OFF_MODE,
@@ -128,11 +128,6 @@ int main()
     inputsInit();
     outputsInit();
     while (true) {
-        // char str[8];
-        // sprintf (str, "%.2f\r\n", f);
-        // int len = strlen(str);
-        // uartUsb.write(str, len);
-        debounceButtonUpdate();
         ignitionUpdate();
         headlightUpdate();
         delay(TIME_INCREMENT_MS);
