@@ -25,19 +25,23 @@
 
 //=====[Defines]===============================================================
 
+
 #define DAYLIGHT_LEVEL 0.80
 #define DUSK_LEVEL 0.65
 
-#define HEADLIGHT_OFF_THRESHOLD 0.33
-#define HEADLIGHT_ON_THRESHOLD 0.66
+
+#define HEADLIGHT_OFF_THRESHOLD               0.33
+#define HEADLIGHT_ON_THRESHOLD                0.66
 
 #define TIME_INCREMENT_MS                       10
 #define DEBOUNCE_BUTTON_TIME_MS                 40
+
 
 #define HEADLIGHT_ON_TIME 1000
 #define HEADLIGHT_OFF_TIME 2000
 
 //=====[Declaration of public data types]=================
+
 
 typedef enum {
     OFF_MODE,
@@ -71,20 +75,50 @@ UnbufferedSerial uartUsb(USBTX, USBRX, 115200);
 int accumulatedHeadlightTime          = 0;
 
 int accumulatedDebounceButtonTime     = 0;
-int numberOfIgnitionButtonReleasedEvents = 0;
 buttonState_t ignitionButtonState;
 
 //=====[Declarations (prototypes) of public functions]=========================
 
+/**
+ * Returns the mode of the headlight based on potentiometer reading.
+ * @Return OFF_MODE, AUTO_MODE, ON_MODE
+ */
 headlightMode_t getHeadlightMode();
 
+/**
+ * Initialize the inputs
+ */
 void inputsInit();
+
+/**
+ * Initialize the outputs
+ */ 
 void outputsInit();
 
+/**
+ * Update the headlights. They should be off when the ignition is off.
+ * Otherwise they are set by their mode. In auto uses daylight readings
+ * to automatically switch between on and off.
+ */
 void headlightUpdate();
+
+/**
+ * Updates the ignition. The ignition goes on when the driver is seated
+ * and the ignition button is released. It goes off when the ignition button
+ * is pushed and released again. 
+ * If other methods want to know if the ignition is on, they should use
+ * ignitionLed.read()
+ */
 void ignitionUpdate();
 
+/**
+ * Initialize the debounce button state. 
+ */
 void debounceButtonInit();
+
+/**
+ * @Return true when a buttonReleasedEvent occurs
+ */
 bool debounceButtonUpdate();
 
 //=====[Main function, the program entry point after power on or reset]========
@@ -100,9 +134,7 @@ int main()
 {
     inputsInit();
     outputsInit();
-    debounceButtonInit();
     while (true) {
-        debounceButtonUpdate();
         ignitionUpdate();
         headlightUpdate();
         delay(TIME_INCREMENT_MS);
@@ -112,6 +144,7 @@ int main()
 //=====[Implementation of global functions]====================================
 
 headlightMode_t getHeadlightMode() {
+
 if(headlightModeSelector <= HEADLIGHT_OFF_THRESHOLD){
     return OFF_MODE;
 }
@@ -125,11 +158,13 @@ else{
 }
 
 void inputsInit() {
-
+    driverOccupancy.mode(PullDown);
+    debounceButtonInit();
 }
 
 void outputsInit() {
-
+    lowBeamLampLeft = OFF;
+    lowBeamLampRight = OFF;
 }
 
 void headlightUpdate() {
@@ -174,7 +209,16 @@ void headlightUpdate() {
 
 
 void ignitionUpdate() {
-
+    bool enterButtonReleasedEvent = debounceButtonUpdate();
+    if (ignitionLed.read()) {
+        if (enterButtonReleasedEvent) {
+            ignitionLed = OFF;
+        }
+    } else {
+        if (driverOccupancy && enterButtonReleasedEvent) {
+            ignitionLed = ON;
+        }
+    }
 }
 
 void debounceButtonInit()
