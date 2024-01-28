@@ -68,20 +68,50 @@ UnbufferedSerial uartUsb(USBTX, USBRX, 115200);
 int accumulatedHeadlightTime          = 0;
 
 int accumulatedDebounceButtonTime     = 0;
-int numberOfIgnitionButtonReleasedEvents = 0;
 buttonState_t ignitionButtonState;
 
 //=====[Declarations (prototypes) of public functions]=========================
 
+/**
+ * Returns the mode of the headlight based on potentiometer reading.
+ * @Return OFF_MODE, AUTO_MODE, ON_MODE
+ */
 headlightMode_t getHeadlightMode();
 
+/**
+ * Initialize the inputs
+ */
 void inputsInit();
+
+/**
+ * Initialize the outputs
+ */ 
 void outputsInit();
 
+/**
+ * Update the headlights. They should be off when the ignition is off.
+ * Otherwise they are set by their mode. In auto uses daylight readings
+ * to automatically switch between on and off.
+ */
 void headlightUpdate();
+
+/**
+ * Updates the ignition. The ignition goes on when the driver is seated
+ * and the ignition button is released. It goes off when the ignition button
+ * is pushed and released again. 
+ * If other methods want to know if the ignition is on, they should use
+ * ignitionLed.read()
+ */
 void ignitionUpdate();
 
+/**
+ * Initialize the debounce button state. 
+ */
 void debounceButtonInit();
+
+/**
+ * @Return true when a buttonReleasedEvent occurs
+ */
 bool debounceButtonUpdate();
 
 //=====[Main function, the program entry point after power on or reset]========
@@ -97,8 +127,11 @@ int main()
 {
     inputsInit();
     outputsInit();
-    debounceButtonInit();
     while (true) {
+        // char str[8];
+        // sprintf (str, "%.2f\r\n", f);
+        // int len = strlen(str);
+        // uartUsb.write(str, len);
         debounceButtonUpdate();
         ignitionUpdate();
         headlightUpdate();
@@ -109,15 +142,17 @@ int main()
 //=====[Implementation of global functions]====================================
 
 headlightMode_t getHeadlightMode() {
-
+    return OFF_MODE;
 }
 
 void inputsInit() {
-
+    driverOccupancy.mode(PullDown);
+    debounceButtonInit();
 }
 
 void outputsInit() {
-
+    lowBeamLampLeft = OFF;
+    lowBeamLampRight = OFF;
 }
 
 void headlightUpdate() {
@@ -125,7 +160,19 @@ void headlightUpdate() {
 }
 
 void ignitionUpdate() {
-
+    bool enterButtonReleasedEvent = debounceButtonUpdate();
+    if (ignitionLed.read()) {
+        if (enterButtonReleasedEvent) {
+            ignitionLed = OFF;
+        }
+    } else {
+        if (driverOccupancy) {
+            uartUsb.write("Driver In Seat\r\n", 16);
+        }
+        if (driverOccupancy && enterButtonReleasedEvent) {
+            ignitionLed = ON;
+        }
+    }
 }
 
 void debounceButtonInit()
