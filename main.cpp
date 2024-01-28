@@ -25,8 +25,10 @@
 
 //=====[Defines]===============================================================
 
-#define DAYLIGHT_LEVEL                           0
-#define DUSK_LEVEL                               0
+
+#define DAYLIGHT_LEVEL 0.80
+#define DUSK_LEVEL 0.65
+
 
 #define HEADLIGHT_OFF_THRESHOLD               0.33
 #define HEADLIGHT_ON_THRESHOLD                0.66
@@ -34,7 +36,12 @@
 #define TIME_INCREMENT_MS                       10
 #define DEBOUNCE_BUTTON_TIME_MS                 40
 
-//=====[Declaration of public data types]======================================
+
+#define HEADLIGHT_ON_TIME 1000
+#define HEADLIGHT_OFF_TIME 2000
+
+//=====[Declaration of public data types]=================
+
 
 typedef enum {
     OFF_MODE,
@@ -137,7 +144,17 @@ int main()
 //=====[Implementation of global functions]====================================
 
 headlightMode_t getHeadlightMode() {
+
+if(headlightModeSelector <= HEADLIGHT_OFF_THRESHOLD){
     return OFF_MODE;
+}
+if(headlightModeSelector >= HEADLIGHT_ON_THRESHOLD){
+    return ON_MODE;
+}
+else{
+    return AUTO_MODE;
+}
+
 }
 
 void inputsInit() {
@@ -151,8 +168,45 @@ void outputsInit() {
 }
 
 void headlightUpdate() {
+    if(ignitionLed){
+        switch(getHeadlightMode()){
+            case OFF_MODE:
+            lowBeamLampLeft = 0;
+            lowBeamLampRight = 0;
+            break;
+            case ON_MODE:
+            lowBeamLampLeft = 1;
+            lowBeamLampRight = 1;
+            break;
+            case AUTO_MODE:
+            
+            if(daylightSensor.read() <= DUSK_LEVEL){ 
+                accumulatedHeadlightTime = accumulatedHeadlightTime + TIME_INCREMENT_MS;
+                if(accumulatedHeadlightTime == HEADLIGHT_OFF_TIME){
+                    lowBeamLampLeft = 0;
+                    lowBeamLampRight = 0;
+                    accumulatedHeadlightTime = 0;
+                }
+                }
+            if(daylightSensor.read() <= DUSK_LEVEL){
+                accumulatedHeadlightTime = accumulatedHeadlightTime + TIME_INCREMENT_MS;
+                if(accumulatedHeadlightTime == HEADLIGHT_ON_TIME){
+                    lowBeamLampLeft = 1;
+                    lowBeamLampRight = 1;
+                    accumulatedHeadlightTime = 0;
+                }
+            }
+            else{
+                lowBeamLampLeft = lowBeamLampLeft;
+                lowBeamLampRight = lowBeamLampRight;
 
-}
+            }
+            break;
+            }
+        }
+    }
+
+
 
 void ignitionUpdate() {
     bool enterButtonReleasedEvent = debounceButtonUpdate();
@@ -161,9 +215,6 @@ void ignitionUpdate() {
             ignitionLed = OFF;
         }
     } else {
-        if (driverOccupancy) {
-            uartUsb.write("Driver In Seat\r\n", 16);
-        }
         if (driverOccupancy && enterButtonReleasedEvent) {
             ignitionLed = ON;
         }
