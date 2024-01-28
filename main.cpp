@@ -13,7 +13,7 @@
 * | 01/24/2024 | First version of program |
 * | 01/24/2024 | Added objects and defines clearly required by 
 *                project directions |
-*
+* | 01/24/2024 | Setup for daylight sensor testing |
 *
 */
 
@@ -30,14 +30,16 @@
 //=====[Declaration and initialization of public global objects]===============
 
 AnalogIn headlightModeSelector(A1);
-AnalogIn daylightSensor(A2);
+AnalogIn daylightSensor(A0);
 
 DigitalIn ignitionButton(BUTTON1);
-DigitalIn driverOccupancy(D1);
+DigitalIn driverOccupancy(D2);
 
 DigitalOut ignitionLed(LED2);
 DigitalOut lowBeamLampLeft(D6);
 DigitalOut lowBeamLampRight(D7);
+
+UnbufferedSerial uartUsb(USBTX, USBRX, 115200);
 
 //=====[Declaration and initialization of public global variables]=============
 
@@ -56,9 +58,10 @@ DigitalOut lowBeamLampRight(D7);
 int main()
 {
     while (true) {
-        if (false) {
-
-        }
+        char str[10];
+        sprintf (str, "%.2f\r\n", daylightSensor.read());
+        int len = strlen(str);
+        uartUsb.write("", len);
     }
 }
 
